@@ -1,0 +1,23 @@
+name: edt
+on:
+  schedule:
+    - cron: "17 * * * *"   # toutes les heures
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Générer l'ICS propre
+        env:
+          SOURCE_URL: ${{ secrets.SOURCE_URL }}
+          FILE_ID: ${{ secrets.FILE_ID }}
+        run: python3 clean_edt.py "$SOURCE_URL" "edt-$FILE_ID.ics"
+      - name: Commit si changement
+        run: |
+          git config user.name edt-bot
+          git config user.email edt-bot@users.noreply.github.com
+          git add -A
+          git diff --cached --quiet || (git commit -m "maj edt" && git push)
